@@ -278,7 +278,7 @@ tbody tr:hover{background:var(--surface2)}
 <div id="dashboard-view">
   <div class="dash-header">
     <img src="icons/logo.png" alt="StrikeWorks" style="height:24px">
-    <button class="btn-logout" onclick="doLogout()">Logout</button>
+    <button class="btn-logout" onclick="if(confirm('Are you sure you want to log out?'))doLogout()">Logout</button>
   </div>
   <div class="dash-body" id="dash-body">
     <div class="ptr-indicator" id="ptr-indicator"><div class="spinner"></div></div>
