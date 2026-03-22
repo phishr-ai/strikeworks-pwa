@@ -90,6 +90,10 @@ input{font-family:var(--font);outline:none}
 /* ── Offline Banner ── */
 .offline-banner{position:fixed;top:0;left:0;right:0;background:rgba(245,158,11,.9);color:#000;text-align:center;padding:8px 16px;font-size:13px;font-weight:600;z-index:1000;transform:translateY(-100%);transition:transform .3s ease}
 .offline-banner.show{transform:translateY(0)}
+/* ── Update Banner ── */
+.update-banner{position:fixed;top:0;left:0;right:0;background:var(--accent);color:#000;display:none;align-items:center;justify-content:center;gap:12px;padding:10px 16px;font-size:13px;font-weight:600;z-index:1001}
+.update-banner.show{display:flex}
+.update-banner button{background:#000;color:var(--accent);border:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer}
 
 /* ── Stats Row ── */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
@@ -261,6 +265,12 @@ tbody tr:hover{background:var(--surface2)}
 
 <!-- ── OFFLINE BANNER ── -->
 <div class="offline-banner" id="offline-banner">You're offline — showing cached data</div>
+
+<!-- ── UPDATE BANNER ── -->
+<div class="update-banner" id="update-banner">
+  <span>A new version is available</span>
+  <button id="update-btn">Restart</button>
+</div>
 
 <!-- ── LOGIN VIEW ── -->
 <div id="login-view">
@@ -1349,10 +1359,30 @@ document.getElementById('login-password').addEventListener('keydown', function (
    BOOT
    ================================================================ */
 (function boot() {
-  // Register service worker
+  // Register service worker with update detection
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(function (err) {
+    var _swWaiting = null;
+    navigator.serviceWorker.register('sw.js').then(function (reg) {
+      reg.addEventListener('updatefound', function () {
+        var newSW = reg.installing;
+        if (!newSW) return;
+        newSW.addEventListener('statechange', function () {
+          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            _swWaiting = newSW;
+            document.getElementById('update-banner').classList.add('show');
+          }
+        });
+      });
+    }).catch(function (err) {
       console.warn('SW registration failed:', err);
+    });
+
+    document.getElementById('update-btn').addEventListener('click', function () {
+      if (_swWaiting) _swWaiting.postMessage({ type: 'SKIP_WAITING' });
+    });
+
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      window.location.reload();
     });
   }
 

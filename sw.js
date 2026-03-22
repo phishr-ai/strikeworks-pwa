@@ -1,4 +1,4 @@
-var CACHE_NAME = 'sw-commissions-v12';
+var CACHE_NAME = 'sw-commissions-v13';
 var APP_SHELL = ['/', '/index.html', '/manifest.json', '/favicon.ico', '/icons/logo.png', '/icons/icon-192x192.png', '/icons/icon-512x512.png', '/icons/apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {
@@ -23,6 +23,13 @@ self.addEventListener('activate', function (e) {
   self.clients.claim();
 });
 
+// Allow the page to trigger skipWaiting when user clicks "Restart"
+self.addEventListener('message', function (e) {
+  if (e.data && e.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', function (e) {
   var url = new URL(e.request.url);
 
@@ -38,15 +45,29 @@ self.addEventListener('fetch', function (e) {
     return;
   }
 
-  // Cache-first for app shell
+  // Network-first for HTML (ensures updates are picked up)
+  if (e.request.mode === 'navigate' || e.request.destination === 'document' || url.pathname.endsWith('.html') || url.pathname === '/') {
+    e.respondWith(
+      fetch(e.request).then(function (resp) {
+        var clone = resp.clone();
+        caches.open(CACHE_NAME).then(function (cache) { cache.put(e.request, clone); });
+        return resp;
+      }).catch(function () {
+        return caches.match(e.request);
+      })
+    );
+    return;
+  }
+
+  // Cache-first for static assets (icons, fonts, manifest)
   e.respondWith(
     caches.match(e.request).then(function (cached) {
-      return cached || fetch(e.request).then(function (resp) {
-        return caches.open(CACHE_NAME).then(function (cache) {
-          cache.put(e.request, resp.clone());
-          return resp;
-        });
-      });
+      var fetchPromise = fetch(e.request).then(function (resp) {
+        var clone = resp.clone();
+        caches.open(CACHE_NAME).then(function (cache) { cache.put(e.request, clone); });
+        return resp;
+      }).catch(function () { return cached; });
+      return cached || fetchPromise;
     })
   );
 });
