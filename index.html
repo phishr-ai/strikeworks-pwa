@@ -31,19 +31,34 @@ input{font-family:var(--font);outline:none}
 .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
 .spinner-lg{width:40px;height:40px;border-width:3px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-overlay{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:120px 0}
-.loading-overlay .spinner{width:48px;height:48px;border-width:4px}
+
+/* ── Skeleton Loading ── */
+@keyframes shimmer{
+  0%{background-position:-400px 0}
+  100%{background-position:400px 0}
+}
+.skeleton{background:var(--surface2);background-image:linear-gradient(90deg,var(--surface2) 0%,#252525 50%,var(--surface2) 100%);background-size:400px 100%;animation:shimmer 1.5s ease-in-out infinite;border-radius:var(--radius)}
+.skeleton-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
+.skeleton-stat{height:72px;border-radius:var(--radius)}
+.skeleton-card{height:80px;border-radius:var(--radius);margin-bottom:8px}
+@media(min-width:481px){
+  .skeleton-stats{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+}
+#loading-skeleton{display:none}
 
 /* ── Login ── */
-#login-view{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+#login-view{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;opacity:1;transition:opacity .2s ease}
 .login-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:40px 32px}
 .login-logo{text-align:center;margin-bottom:32px}
 .login-logo h1{font-size:24px;font-weight:700;color:#fff}
 .login-logo p{font-size:13px;color:var(--text-dim);margin-top:4px}
 .form-group{margin-bottom:16px}
 .form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.form-group input{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:#fff;font-size:14px;transition:border-color .2s}
+.form-group input[type="email"],.form-group input[type="password"]{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:#fff;font-size:14px;transition:border-color .2s}
 .form-group input:focus{border-color:var(--accent)}
+.remember-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer}
+.remember-row input[type="checkbox"]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
+.remember-row label{font-size:13px;color:var(--text-dim);cursor:pointer;user-select:none}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;transition:all .15s}
 .btn-primary{width:100%;background:var(--accent);color:#000;padding:12px}
 .btn-primary:hover{opacity:.9}
@@ -51,7 +66,7 @@ input{font-family:var(--font);outline:none}
 .login-error{color:var(--red);font-size:13px;text-align:center;margin-top:12px;min-height:20px}
 
 /* ── Dashboard ── */
-#dashboard-view{display:none;min-height:100vh}
+#dashboard-view{display:none;min-height:100vh;opacity:1;transition:opacity .2s ease}
 .dash-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px}
 .dash-header h2{font-size:18px;font-weight:700;color:#fff;white-space:nowrap}
 .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -65,7 +80,16 @@ input{font-family:var(--font);outline:none}
 .btn-logout{padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:12px;font-weight:600}
 .btn-logout:hover{border-color:var(--red);color:var(--red)}
 
-.dash-body{padding:24px;max-width:1400px;margin:0 auto}
+.dash-body{padding:24px;max-width:1400px;margin:0 auto;position:relative}
+
+/* ── Pull to Refresh ── */
+.ptr-indicator{display:none;align-items:center;justify-content:center;padding:12px;margin-bottom:8px}
+.ptr-indicator.show{display:flex}
+.ptr-indicator .spinner{width:24px;height:24px}
+
+/* ── Offline Banner ── */
+.offline-banner{position:fixed;top:0;left:0;right:0;background:rgba(245,158,11,.9);color:#000;text-align:center;padding:8px 16px;font-size:13px;font-weight:600;z-index:1000;transform:translateY(-100%);transition:transform .3s ease}
+.offline-banner.show{transform:translateY(0)}
 
 /* ── Stats Row ── */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
@@ -74,6 +98,12 @@ input{font-family:var(--font);outline:none}
 .stat-card .value{font-size:22px;font-weight:700;color:#fff}
 .stat-card .value.accent{color:var(--accent)}
 .stat-card .value.gold{color:var(--gold)}
+.stat-card .delta{font-size:11px;font-weight:600;margin-top:2px}
+.stat-card .delta.positive{color:var(--green)}
+.stat-card .delta.negative{color:var(--red)}
+
+/* ── Content Transitions ── */
+#dash-content{transition:opacity .15s ease}
 
 /* ── Section ── */
 .section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px}
@@ -148,9 +178,44 @@ tbody tr:hover{background:var(--surface2)}
   .quarter-nav button{padding:5px 10px;font-size:11px}
   .year-nav{font-size:13px}
   .section{padding:12px;border-radius:8px}
-  /* Make tables horizontally scrollable with hints */
-  .table-wrap{margin:0 -12px;padding:0 12px}
-  table{min-width:500px}
+  /* Hide tables on mobile — JS renders cards instead */
+  .table-wrap{margin:0}
+  /* Mobile cards */
+  .deal-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;transition:border-color .2s}
+  .deal-card .dc-header{display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer}
+  .deal-card .dc-header-left{flex:1;min-width:0}
+  .deal-card .dc-header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .deal-card .dc-name{font-size:13px;font-weight:600;color:#fff;margin-bottom:8px;line-height:1.3}
+  .deal-card .dc-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+  .deal-card .dc-label{color:var(--text-dim)}
+  .deal-card .dc-value{color:var(--text);font-weight:500;text-align:right}
+  .deal-card .dc-value.accent{color:var(--accent)}
+  .deal-card .dc-value.gold{color:var(--gold)}
+  .deal-card .dc-split{border-top:1px solid var(--border);margin-top:6px;padding-top:6px}
+  .deal-card-total{background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:12px;margin-top:4px}
+  /* Expandable deal cards */
+  .deal-card .dc-expand-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .deal-card.expanded .dc-expand-body{max-height:300px}
+  /* Hero commission card */
+  .hero-card{background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:20px;margin-bottom:16px;text-align:center;transition:border-color .3s}
+  .hero-card .hero-label{font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px}
+  .hero-card .hero-value{font-size:36px;font-weight:700;color:var(--accent);margin:8px 0}
+  .hero-card .hero-delta{font-size:12px;font-weight:600;margin-bottom:4px}
+  .hero-card .hero-delta.positive{color:var(--green)}
+  .hero-card .hero-delta.negative{color:var(--red)}
+  .hero-card .hero-bar{height:8px;background:var(--surface2);border-radius:4px;margin:12px 0 8px;overflow:hidden}
+  .hero-card .hero-bar-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s ease,background .3s ease,box-shadow .3s ease}
+  .hero-card .hero-bar-fill.gold-bar{background:var(--gold);box-shadow:0 0 12px rgba(255,215,0,.4)}
+  .hero-card .hero-sub{font-size:12px;color:var(--text-dim)}
+  /* Hide stat cards on mobile */
+  .stat-card.mobile-hide{display:none}
+  /* Hide waterfall on mobile */
+  #waterfall-section{display:none}
+  /* Collapsible sections */
+  .section-title.collapsible{cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+  .section-title.collapsible::after{content:'\25B2';font-size:10px;color:var(--text-dim);transition:transform .2s}
+  .section-title.collapsed::after{transform:rotate(180deg)}
+  .section-body.collapsed{display:none}
   /* Waterfall chart */
   .wf-label,.cb-label{width:70px;min-width:70px;font-size:9px}
   .wf-amount{font-size:10px}
@@ -161,6 +226,8 @@ tbody tr:hover{background:var(--surface2)}
   /* Login */
   .login-card{padding:32px 20px}
   .login-logo img{height:32px !important}
+  /* Skeleton responsive */
+  .skeleton-stats{grid-template-columns:1fr 1fr;gap:6px}
 }
 /* ── Install Banner ── */
 #install-banner{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:14px 24px;display:none;align-items:center;gap:14px;z-index:900;animation:slideUp .3s ease forwards}
@@ -178,6 +245,9 @@ tbody tr:hover{background:var(--surface2)}
 </head>
 <body>
 
+<!-- ── OFFLINE BANNER ── -->
+<div class="offline-banner" id="offline-banner">You're offline — showing cached data</div>
+
 <!-- ── LOGIN VIEW ── -->
 <div id="login-view">
   <div class="login-card">
@@ -193,6 +263,10 @@ tbody tr:hover{background:var(--surface2)}
       <label>Password</label>
       <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password">
     </div>
+    <div class="remember-row">
+      <input type="checkbox" id="remember-me" checked>
+      <label for="remember-me">Remember me</label>
+    </div>
     <button class="btn btn-primary" id="login-btn" onclick="doLogin()">Sign In</button>
     <div class="login-error" id="login-error"></div>
   </div>
@@ -204,7 +278,8 @@ tbody tr:hover{background:var(--surface2)}
     <img src="icons/logo.png" alt="StrikeWorks" style="height:24px">
     <button class="btn-logout" onclick="doLogout()">Logout</button>
   </div>
-  <div class="dash-body">
+  <div class="dash-body" id="dash-body">
+    <div class="ptr-indicator" id="ptr-indicator"><div class="spinner"></div></div>
     <h2 id="welcome-msg" style="font-size:22px;font-weight:700;color:#fff;margin-bottom:16px">Welcome</h2>
     <div id="quarter-controls" style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap">
       <div class="quarter-nav" id="quarter-nav"></div>
@@ -214,11 +289,19 @@ tbody tr:hover{background:var(--surface2)}
         <button onclick="changeYear(1)">&rsaquo;</button>
       </div>
     </div>
-    <div class="loading-overlay" id="loading" style="display:none">
-      <div class="spinner spinner-lg"></div>
-      <div style="color:var(--text-dim);font-size:14px">Loading commission data...</div>
+    <div id="loading-skeleton" style="display:none">
+      <div class="skeleton-stats">
+        <div class="skeleton skeleton-stat"></div>
+        <div class="skeleton skeleton-stat"></div>
+        <div class="skeleton skeleton-stat"></div>
+        <div class="skeleton skeleton-stat"></div>
+      </div>
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
     </div>
     <div id="dash-content" style="display:none">
+      <div id="hero-card-wrap"></div>
       <div class="stats-row" id="stats-row"></div>
       <div class="section" id="waterfall-section">
         <div class="section-title">Commission Waterfall</div>
@@ -257,7 +340,10 @@ var ACCEL_RATE = 1.5;
 
 var COMPANY_COLORS = ['#17C6BD','#8B5CF6','#F59E0B','#EF4444','#3B82F6','#10B981','#EC4899','#6366F1'];
 
-var state = { quarter: currentQuarter(), year: new Date().getFullYear(), session: null, cache: {}, dealFilter: 'all', dealSort: { col: null, dir: 1 } };
+var SESSION_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days in ms
+
+var state = { quarter: currentQuarter(), year: new Date().getFullYear(), session: null, cache: {}, dealFilter: 'all', dealSort: { col: null, dir: 1 }, prevCalc: null };
+function isMobile() { return window.innerWidth <= 480; }
 
 function currentQuarter() { return Math.ceil((new Date().getMonth() + 1) / 3); }
 
@@ -284,10 +370,119 @@ function fmtPct(n) { return (n * 100).toFixed(1) + '%'; }
 function escHtml(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
 function showLoading(show) {
-  document.getElementById('loading').style.display = show ? 'flex' : 'none';
+  document.getElementById('loading-skeleton').style.display = show ? 'block' : 'none';
   document.getElementById('dash-content').style.display = show ? 'none' : 'block';
   document.getElementById('welcome-msg').style.display = show ? 'none' : '';
   document.getElementById('quarter-controls').style.display = show ? 'none' : 'flex';
+}
+
+/* ── Offline Banner ── */
+function showOfflineBanner() {
+  var banner = document.getElementById('offline-banner');
+  banner.classList.add('show');
+  setTimeout(function() { banner.classList.remove('show'); }, 5000);
+}
+function hideOfflineBanner() {
+  document.getElementById('offline-banner').classList.remove('show');
+}
+
+/* ── Animated Counter ── */
+function animateCounter(el, target, duration) {
+  var start = 0;
+  var startTime = null;
+  function step(timestamp) {
+    if (!startTime) startTime = timestamp;
+    var progress = Math.min((timestamp - startTime) / duration, 1);
+    // ease-out cubic
+    var eased = 1 - Math.pow(1 - progress, 3);
+    var current = start + (target - start) * eased;
+    el.textContent = fmtDec(current);
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+/* ── Confetti ── */
+function launchConfetti() {
+  var canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  var ctx = canvas.getContext('2d');
+  var colors = ['#17C6BD', '#FFD700', '#ffffff', '#8B5CF6', '#10B981'];
+  var particles = [];
+  for (var i = 0; i < 100; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height * -1,
+      w: Math.random() * 8 + 4,
+      h: Math.random() * 4 + 2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 3,
+      vy: Math.random() * 3 + 2,
+      rot: Math.random() * Math.PI * 2,
+      rv: (Math.random() - 0.5) * 0.2
+    });
+  }
+  var startTime = Date.now();
+  function draw() {
+    var elapsed = Date.now() - startTime;
+    if (elapsed > 3000) {
+      document.body.removeChild(canvas);
+      return;
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var alpha = elapsed > 2500 ? 1 - (elapsed - 2500) / 500 : 1;
+    ctx.globalAlpha = alpha;
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.rv;
+      p.vy += 0.05;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ── Deal Card Color Border ── */
+function dealBorderStyle(rate) {
+  switch (rate) {
+    case 'base': return 'border-left:3px solid var(--accent)';
+    case 'accel': return 'border-left:3px solid var(--gold)';
+    case 'split': return 'border-left:3px solid var(--accent)';
+    case 'project': return 'border-left:3px solid var(--purple)';
+    default: return '';
+  }
+}
+
+/* ── Delta formatting ── */
+function fmtDelta(current, prev) {
+  if (prev === null || prev === undefined) return '';
+  var diff = current - prev;
+  if (diff === 0) return '';
+  var cls = diff > 0 ? 'positive' : 'negative';
+  var sign = diff > 0 ? '+' : '';
+  return '<div class="delta ' + cls + '">' + sign + fmt(diff) + '</div>';
+}
+
+function fmtDeltaDec(current, prev) {
+  if (prev === null || prev === undefined) return '';
+  var diff = current - prev;
+  if (diff === 0) return '';
+  var cls = diff > 0 ? 'positive' : 'negative';
+  var sign = diff > 0 ? '+' : '';
+  return '<div class="delta ' + cls + '">' + sign + fmtDec(diff) + '</div>';
 }
 
 /* ================================================================
@@ -298,6 +493,7 @@ function doLogin() {
   var pw = document.getElementById('login-password').value;
   var errEl = document.getElementById('login-error');
   var btn = document.getElementById('login-btn');
+  var remember = document.getElementById('remember-me').checked;
 
   if (!email || !pw) { errEl.textContent = 'Please enter email and password.'; return; }
 
@@ -309,8 +505,16 @@ function doLogin() {
     .then(function (res) {
       if (res && res.authenticated) {
         state.session = { cwRepId: res.cwRepId, cwRepName: res.cwRepName, email: email };
-        localStorage.setItem('sw_session', JSON.stringify(state.session));
-        showDashboard();
+        if (remember) {
+          state.session.loginAt = Date.now();
+          localStorage.setItem('sw_session', JSON.stringify(state.session));
+        } else {
+          // Store session without loginAt so auto-login won't trigger
+          localStorage.setItem('sw_session', JSON.stringify(state.session));
+        }
+        transitionToView('login-view', 'dashboard-view', function() {
+          showDashboard();
+        });
       } else {
         errEl.textContent = 'Invalid email or password.';
       }
@@ -329,10 +533,34 @@ function doLogout() {
   localStorage.removeItem('sw_session');
   state.session = null;
   state.cache = {};
-  document.getElementById('login-view').style.display = 'flex';
-  document.getElementById('dashboard-view').style.display = 'none';
-  document.getElementById('login-password').value = '';
-  document.getElementById('login-error').textContent = '';
+  state.prevCalc = null;
+  transitionToView('dashboard-view', 'login-view', function() {
+    document.getElementById('login-view').style.display = 'flex';
+    document.getElementById('dashboard-view').style.display = 'none';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-error').textContent = '';
+  });
+}
+
+/* ── Smooth View Transitions ── */
+function transitionToView(fromId, toId, callback) {
+  var fromEl = document.getElementById(fromId);
+  var toEl = document.getElementById(toId);
+  fromEl.style.opacity = '0';
+  setTimeout(function() {
+    fromEl.style.display = 'none';
+    fromEl.style.opacity = '1';
+    toEl.style.opacity = '0';
+    if (toId === 'dashboard-view') {
+      toEl.style.display = 'block';
+    } else {
+      toEl.style.display = 'flex';
+    }
+    if (callback) callback();
+    // Force reflow
+    void toEl.offsetWidth;
+    toEl.style.opacity = '1';
+  }, 200);
 }
 
 /* ================================================================
@@ -361,14 +589,27 @@ function renderYearDisplay() {
 
 function setQuarter(q) {
   state.quarter = q;
+  state.prevCalc = null;
   renderQuarterNav();
-  loadQuarterData();
+  fadeAndLoad();
 }
 
 function changeYear(delta) {
   state.year += delta;
+  state.prevCalc = null;
   renderYearDisplay();
-  loadQuarterData();
+  fadeAndLoad();
+}
+
+/* ── Fade transition on quarter/year change ── */
+function fadeAndLoad() {
+  var content = document.getElementById('dash-content');
+  content.style.opacity = '0';
+  setTimeout(function() {
+    loadQuarterData().then(function() {
+      content.style.opacity = '1';
+    });
+  }, 150);
 }
 
 /* ================================================================
@@ -378,6 +619,7 @@ async function loadQuarterData() {
   var key = state.quarter + '-' + state.year;
   if (state.cache[key]) {
     renderAll(state.cache[key]);
+    loadPreviousQuarter();
     return;
   }
 
@@ -389,12 +631,93 @@ async function loadQuarterData() {
       year: state.year
     });
     state.cache[key] = result;
+    hideOfflineBanner();
     renderAll(result);
+    loadPreviousQuarter();
   } catch (err) {
     console.error('Failed to load data:', err);
-    document.getElementById('stats-row').innerHTML = '<div class="stat-card" style="grid-column:1/-1;text-align:center;color:var(--red)">Failed to load data. Please try again.</div>';
+    // Try to show cached data
+    if (state.cache[key]) {
+      renderAll(state.cache[key]);
+      showOfflineBanner();
+    } else {
+      showOfflineBanner();
+      document.getElementById('stats-row').innerHTML = '<div class="stat-card" style="grid-column:1/-1;text-align:center;color:var(--red)">Failed to load data. Please try again.</div>';
+    }
   } finally {
     showLoading(false);
+  }
+}
+
+/* ── Load Previous Quarter (background, non-blocking) ── */
+function loadPreviousQuarter() {
+  var prevQ = state.quarter - 1;
+  var prevY = state.year;
+  if (prevQ < 1) { prevQ = 4; prevY = state.year - 1; }
+  var prevKey = prevQ + '-' + prevY;
+
+  if (state.cache[prevKey]) {
+    var prevOpps = (state.cache[prevKey] && state.cache[prevKey].opportunities) ? state.cache[prevKey].opportunities : [];
+    state.prevCalc = calculateCommissions(prevOpps);
+    updateDeltas();
+    return;
+  }
+
+  // Fetch in background
+  callWebhook(WF_DATA, {
+    cwRepId: state.session.cwRepId,
+    quarter: prevQ,
+    year: prevY
+  }).then(function(result) {
+    state.cache[prevKey] = result;
+    var prevOpps = (result && result.opportunities) ? result.opportunities : [];
+    state.prevCalc = calculateCommissions(prevOpps);
+    updateDeltas();
+  }).catch(function() {
+    // Silently fail — deltas just won't show
+  });
+}
+
+/* ── Update deltas on stat cards and hero card after prev quarter loads ── */
+function updateDeltas() {
+  if (!state.prevCalc || !state._calc) return;
+  var calc = state._calc;
+  var prev = state.prevCalc;
+  var totalRev = calc.totalMrr + calc.totalProject;
+  var prevTotalRev = prev.totalMrr + prev.totalProject;
+
+  // Update stat card deltas
+  var deltaMap = {
+    'Revenue Closed': fmtDelta(totalRev, prevTotalRev),
+    'MRR Revenue': fmtDelta(calc.totalMrr, prev.totalMrr),
+    'Project Revenue': fmtDelta(calc.totalProject, prev.totalProject),
+    'Commission Earned': fmtDeltaDec(calc.totalCommission, prev.totalCommission),
+    'Deals Won': fmtDelta(calc.deals.length, prev.deals.length)
+  };
+
+  var statCards = document.querySelectorAll('.stat-card');
+  for (var i = 0; i < statCards.length; i++) {
+    var labelEl = statCards[i].querySelector('.label');
+    if (labelEl && deltaMap[labelEl.textContent]) {
+      // Remove existing delta
+      var existing = statCards[i].querySelector('.delta');
+      if (existing) existing.remove();
+      statCards[i].insertAdjacentHTML('beforeend', deltaMap[labelEl.textContent]);
+    }
+  }
+
+  // Update hero delta on mobile
+  if (isMobile()) {
+    var heroDelta = document.getElementById('hero-delta');
+    if (heroDelta) {
+      var diff = calc.totalCommission - prev.totalCommission;
+      if (diff !== 0) {
+        var cls = diff > 0 ? 'positive' : 'negative';
+        var sign = diff > 0 ? '+' : '';
+        heroDelta.className = 'hero-delta ' + cls;
+        heroDelta.textContent = sign + fmtDec(diff) + ' vs last quarter';
+      }
+    }
   }
 }
 
@@ -402,7 +725,7 @@ async function loadQuarterData() {
    COMMISSION CALCULATION
    ================================================================ */
 function calculateCommissions(opps) {
-  if (!opps || !opps.length) return { deals: [], totalMrr: 0, totalProject: 0, totalCommission: 0 };
+  if (!opps || !opps.length) return { deals: [], totalMrr: 0, totalProject: 0, totalCommission: 0, mrrDeals: [], projectDeals: [], runningMrr: 0 };
 
   var deals = opps.map(function (o) {
     var mrr = (o.recurringTotal && o.recurringTotal > 0) ? o.recurringTotal : o.amount;
@@ -494,6 +817,41 @@ function renderAll(data) {
   renderDealFilterTabs();
   renderDealTable(calc);
   renderCompanyBreakdown(calc);
+
+  // Mobile: collapsible sections + hide waterfall
+  if (isMobile()) {
+    document.getElementById('waterfall-section').style.display = 'none';
+    setupCollapsible('commission-table-section', false);
+    setupCollapsible('company-section', true);
+  } else {
+    document.getElementById('waterfall-section').style.display = '';
+  }
+
+  // Confetti if quota exceeded
+  var quotaPct = calc.totalMrr / QUOTA;
+  if (quotaPct > 1) {
+    setTimeout(launchConfetti, 300);
+  }
+}
+
+function setupCollapsible(sectionId, startCollapsed) {
+  var section = document.getElementById(sectionId);
+  if (!section) return;
+  var title = section.querySelector('.section-title');
+  var body = title.nextElementSibling;
+  // Wrap remaining content if not already wrapped
+  if (!section.querySelector('.section-body')) {
+    var wrapper = document.createElement('div');
+    wrapper.className = 'section-body' + (startCollapsed ? ' collapsed' : '');
+    while (title.nextSibling) wrapper.appendChild(title.nextSibling);
+    section.appendChild(wrapper);
+    body = wrapper;
+  }
+  title.className = 'section-title collapsible' + (startCollapsed ? ' collapsed' : '');
+  title.onclick = function() {
+    title.classList.toggle('collapsed');
+    body.classList.toggle('collapsed');
+  };
 }
 
 /* ================================================================
@@ -503,22 +861,53 @@ function renderStats(calc) {
   var totalRev = calc.totalMrr + calc.totalProject;
   var quotaPct = calc.totalMrr / QUOTA;
   var effectiveRate = calc.totalMrr > 0 ? (calc.totalCommission / calc.totalMrr) : 0;
+  var mobile = isMobile();
+
+  // Hero card (mobile only)
+  if (mobile) {
+    var barPct = Math.min(quotaPct * 100, 100);
+    var isGold = quotaPct > 1;
+    var heroHtml = '<div class="hero-card">';
+    heroHtml += '<div class="hero-label">Commission Earned</div>';
+    heroHtml += '<div class="hero-value" id="hero-commission-value">$0.00</div>';
+    heroHtml += '<div class="hero-delta" id="hero-delta"></div>';
+    heroHtml += '<div class="hero-bar"><div class="hero-bar-fill' + (isGold ? ' gold-bar' : '') + '" style="width:' + barPct.toFixed(0) + '%"></div></div>';
+    heroHtml += '<div class="hero-sub">' + fmtPct(quotaPct) + ' of ' + fmt(QUOTA) + ' quota &middot; ' + calc.deals.length + ' deals</div>';
+    heroHtml += '</div>';
+    document.getElementById('hero-card-wrap').innerHTML = heroHtml;
+
+    // Animate the commission counter
+    var heroValueEl = document.getElementById('hero-commission-value');
+    if (heroValueEl && calc.totalCommission > 0) {
+      animateCounter(heroValueEl, calc.totalCommission, 1000);
+    } else if (heroValueEl) {
+      heroValueEl.textContent = fmtDec(0);
+    }
+  } else {
+    document.getElementById('hero-card-wrap').innerHTML = '';
+  }
 
   var cards = [
-    { label: 'Revenue Closed', value: fmt(totalRev), cls: '' },
-    { label: 'MRR Revenue', value: fmt(calc.totalMrr), cls: 'accent' },
-    { label: 'Project Revenue', value: fmt(calc.totalProject), cls: '' },
-    { label: 'Commission Earned', value: fmtDec(calc.totalCommission), cls: 'accent' },
-    { label: 'Deals Won', value: calc.deals.length, cls: '' },
-    { label: 'Quota Attainment', value: fmtPct(quotaPct), cls: quotaPct >= 1 ? 'gold' : '' },
-    { label: 'Effective Rate', value: fmtPct(effectiveRate), cls: '' }
+    { label: 'Revenue Closed', value: fmt(totalRev), cls: '', mobileHide: true },
+    { label: 'MRR Revenue', value: fmt(calc.totalMrr), cls: 'accent', mobileHide: false },
+    { label: 'Project Revenue', value: fmt(calc.totalProject), cls: '', mobileHide: true },
+    { label: 'Commission Earned', value: fmtDec(calc.totalCommission), cls: 'accent', mobileHide: true },
+    { label: 'Deals Won', value: calc.deals.length, cls: '', mobileHide: false },
+    { label: 'Quota Attainment', value: fmtPct(quotaPct), cls: quotaPct >= 1 ? 'gold' : '', mobileHide: false },
+    { label: 'Effective Rate', value: fmtPct(effectiveRate), cls: '', mobileHide: true }
   ];
 
   var html = '';
   for (var i = 0; i < cards.length; i++) {
-    html += '<div class="stat-card"><div class="label">' + cards[i].label + '</div><div class="value ' + cards[i].cls + '">' + cards[i].value + '</div></div>';
+    var hideClass = (mobile && cards[i].mobileHide) ? ' mobile-hide' : '';
+    html += '<div class="stat-card' + hideClass + '"><div class="label">' + cards[i].label + '</div><div class="value ' + cards[i].cls + '">' + cards[i].value + '</div></div>';
   }
   document.getElementById('stats-row').innerHTML = html;
+
+  // Apply deltas if prev data already loaded
+  if (state.prevCalc) {
+    updateDeltas();
+  }
 }
 
 /* ================================================================
@@ -591,6 +980,30 @@ function renderCommissionTable(calc) {
     return;
   }
 
+  if (isMobile()) {
+    var html = '';
+    for (var i = 0; i < calc.mrrDeals.length; i++) {
+      var d = calc.mrrDeals[i];
+      var border = dealBorderStyle(d.rate);
+      html += '<div class="deal-card" style="' + border + '">';
+      html += '<div class="dc-name">' + (i + 1) + '. ' + escHtml(d.name) + '</div>';
+      html += '<div class="dc-row"><span class="dc-label">Monthly</span><span class="dc-value">' + fmt(d._mrr) + '</span></div>';
+      html += '<div class="dc-row"><span class="dc-label">Running Total</span><span class="dc-value">' + fmt(d.runningTotal) + '</span></div>';
+      html += '<div class="dc-row"><span class="dc-label">Rate</span><span class="dc-value">' + rateLabel(d.rate) + '</span></div>';
+      html += '<div class="dc-row"><span class="dc-label">Commission</span><span class="dc-value accent">' + fmtDec(d.commission) + '</span></div>';
+      if (d.rate === 'split') {
+        html += '<div class="dc-split">';
+        html += '<div class="dc-row"><span class="dc-label">Base portion</span><span class="dc-value">' + fmt(d.basePortion) + ' @ 1.0x = ' + fmtDec(d.basePortion * BASE_RATE) + '</span></div>';
+        html += '<div class="dc-row"><span class="dc-label">Accelerator</span><span class="dc-value gold">' + fmt(d.accelPortion) + ' @ 1.5x = ' + fmtDec(d.accelPortion * ACCEL_RATE) + '</span></div>';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+    html += '<div class="deal-card-total"><div class="dc-row"><span class="dc-label" style="font-weight:600;color:#fff">Subtotal</span></div><div class="dc-row"><span class="dc-label">MRR Total</span><span class="dc-value">' + fmt(calc.totalMrr) + '</span></div><div class="dc-row"><span class="dc-label">Commission</span><span class="dc-value accent" style="font-size:16px;font-weight:700">' + fmtDec(calc.totalCommission) + '</span></div></div>';
+    document.getElementById('commission-table-wrap').innerHTML = html;
+    return;
+  }
+
   var html = '<table><thead><tr><th>#</th><th>Deal</th><th>Monthly</th><th>Running Total</th><th>Rate</th><th>Commission</th></tr></thead><tbody>';
 
   for (var i = 0; i < calc.mrrDeals.length; i++) {
@@ -658,6 +1071,10 @@ function sortDeals(col) {
   renderDealTable(state._calc);
 }
 
+function toggleDealCard(el) {
+  el.classList.toggle('expanded');
+}
+
 function renderDealTable(calc) {
   var deals = calc.deals.slice();
 
@@ -704,6 +1121,34 @@ function renderDealTable(calc) {
     html += '<th class="' + sortCls + '" onclick="sortDeals(\'' + cols[c].key + '\')">' + cols[c].label + '</th>';
   }
   html += '</tr></thead><tbody>';
+
+  if (isMobile()) {
+    var mhtml = '';
+    if (!deals.length) {
+      mhtml = '<div style="text-align:center;color:var(--text-dim);padding:24px">No deals</div>';
+    } else {
+      for (var i = 0; i < deals.length; i++) {
+        var d = deals[i];
+        var border = dealBorderStyle(d.rate);
+        mhtml += '<div class="deal-card" style="' + border + '" onclick="toggleDealCard(this)">';
+        // Collapsed header: name + rate badge + commission
+        mhtml += '<div class="dc-header">';
+        mhtml += '<div class="dc-header-left"><div class="dc-name" style="margin-bottom:0">' + escHtml(d.name) + '</div></div>';
+        mhtml += '<div class="dc-header-right">' + rateLabel(d.rate) + '<span style="font-size:12px;font-weight:600;color:var(--accent)">' + (d.commission > 0 ? fmtDec(d.commission) : '\u2014') + '</span></div>';
+        mhtml += '</div>';
+        // Expandable body
+        mhtml += '<div class="dc-expand-body">';
+        if (d.company) mhtml += '<div class="dc-row" style="margin-top:8px"><span class="dc-label">Company</span><span class="dc-value">' + escHtml(d.company) + '</span></div>';
+        mhtml += '<div class="dc-row"><span class="dc-label">Closed</span><span class="dc-value">' + fmtDate(d.closedDate) + '</span></div>';
+        mhtml += '<div class="dc-row"><span class="dc-label">Monthly</span><span class="dc-value">' + fmt(d._mrr) + '</span></div>';
+        mhtml += '<div class="dc-row"><span class="dc-label">Contract</span><span class="dc-value">' + fmt(d.amount) + '</span></div>';
+        mhtml += '</div>';
+        mhtml += '</div>';
+      }
+    }
+    document.getElementById('deal-table-wrap').innerHTML = mhtml;
+    return;
+  }
 
   if (!deals.length) {
     html += '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:24px">No deals</td></tr>';
@@ -773,14 +1218,29 @@ function renderCompanyBreakdown(calc) {
   }
   document.getElementById('company-chart').innerHTML = chartHtml;
 
-  // Table
-  var tHtml = '<table><thead><tr><th>Company</th><th>Total</th><th>MRR</th><th>Project</th><th>Deals</th></tr></thead><tbody>';
-  for (var k = 0; k < coList.length; k++) {
-    var cc = coList[k];
-    tHtml += '<tr><td>' + escHtml(cc.name) + '</td><td>' + fmt(cc.total) + '</td><td>' + fmt(cc.mrr) + '</td><td>' + fmt(cc.project) + '</td><td>' + cc.deals + '</td></tr>';
+  // Table / Cards
+  if (isMobile()) {
+    var tHtml = '';
+    for (var k = 0; k < coList.length; k++) {
+      var cc = coList[k];
+      tHtml += '<div class="deal-card">';
+      tHtml += '<div class="dc-name">' + escHtml(cc.name) + '</div>';
+      tHtml += '<div class="dc-row"><span class="dc-label">Total</span><span class="dc-value">' + fmt(cc.total) + '</span></div>';
+      tHtml += '<div class="dc-row"><span class="dc-label">MRR</span><span class="dc-value accent">' + fmt(cc.mrr) + '</span></div>';
+      tHtml += '<div class="dc-row"><span class="dc-label">Project</span><span class="dc-value">' + fmt(cc.project) + '</span></div>';
+      tHtml += '<div class="dc-row"><span class="dc-label">Deals</span><span class="dc-value">' + cc.deals + '</span></div>';
+      tHtml += '</div>';
+    }
+    document.getElementById('company-table-wrap').innerHTML = tHtml;
+  } else {
+    var tHtml = '<table><thead><tr><th>Company</th><th>Total</th><th>MRR</th><th>Project</th><th>Deals</th></tr></thead><tbody>';
+    for (var k = 0; k < coList.length; k++) {
+      var cc = coList[k];
+      tHtml += '<tr><td>' + escHtml(cc.name) + '</td><td>' + fmt(cc.total) + '</td><td>' + fmt(cc.mrr) + '</td><td>' + fmt(cc.project) + '</td><td>' + cc.deals + '</td></tr>';
+    }
+    tHtml += '</tbody></table>';
+    document.getElementById('company-table-wrap').innerHTML = tHtml;
   }
-  tHtml += '</tbody></table>';
-  document.getElementById('company-table-wrap').innerHTML = tHtml;
 }
 
 function adjustAlpha(hex, alpha) {
@@ -789,6 +1249,57 @@ function adjustAlpha(hex, alpha) {
   var b = parseInt(hex.slice(5, 7), 16);
   return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
 }
+
+/* ================================================================
+   PULL TO REFRESH (mobile only)
+   ================================================================ */
+(function setupPullToRefresh() {
+  var dashBody = document.getElementById('dash-body');
+  var indicator = document.getElementById('ptr-indicator');
+  var startY = 0;
+  var pulling = false;
+  var threshold = 60;
+
+  dashBody.addEventListener('touchstart', function(e) {
+    if (!isMobile() || dashBody.scrollTop > 0) return;
+    startY = e.touches[0].clientY;
+    pulling = true;
+  }, { passive: true });
+
+  dashBody.addEventListener('touchmove', function(e) {
+    if (!pulling) return;
+    var dy = e.touches[0].clientY - startY;
+    if (dy > 10 && dashBody.scrollTop <= 0) {
+      var progress = Math.min(dy / threshold, 1);
+      indicator.style.display = 'flex';
+      indicator.style.opacity = progress;
+      indicator.style.transform = 'scale(' + (0.5 + progress * 0.5) + ')';
+    }
+  }, { passive: true });
+
+  dashBody.addEventListener('touchend', function(e) {
+    if (!pulling) return;
+    pulling = false;
+    var dy = (e.changedTouches[0] ? e.changedTouches[0].clientY : 0) - startY;
+    if (dy >= threshold && dashBody.scrollTop <= 0) {
+      indicator.classList.add('show');
+      // Clear cache for current quarter and reload
+      var key = state.quarter + '-' + state.year;
+      delete state.cache[key];
+      state.prevCalc = null;
+      loadQuarterData().then(function() {
+        indicator.classList.remove('show');
+        indicator.style.display = 'none';
+        indicator.style.opacity = '';
+        indicator.style.transform = '';
+      });
+    } else {
+      indicator.style.display = 'none';
+      indicator.style.opacity = '';
+      indicator.style.transform = '';
+    }
+  }, { passive: true });
+})();
 
 /* ================================================================
    ENTER KEY SUPPORT
@@ -807,14 +1318,28 @@ document.getElementById('login-password').addEventListener('keydown', function (
     });
   }
 
-  // Check existing session
+  // Check existing session with auto-login (remember me)
   try {
     var saved = localStorage.getItem('sw_session');
     if (saved) {
-      state.session = JSON.parse(saved);
-      if (state.session && state.session.cwRepId) {
-        showDashboard();
-        return;
+      var session = JSON.parse(saved);
+      if (session && session.cwRepId) {
+        // Check if session has loginAt and is within 30 days
+        if (session.loginAt && (Date.now() - session.loginAt) < SESSION_MAX_AGE) {
+          state.session = session;
+          document.getElementById('login-view').style.display = 'none';
+          showDashboard();
+          return;
+        } else if (session.loginAt && (Date.now() - session.loginAt) >= SESSION_MAX_AGE) {
+          // Expired — clear and show login
+          localStorage.removeItem('sw_session');
+        } else {
+          // Legacy session without loginAt — still allow (backward compat)
+          state.session = session;
+          document.getElementById('login-view').style.display = 'none';
+          showDashboard();
+          return;
+        }
       }
     }
   } catch (e) { /* ignore */ }
