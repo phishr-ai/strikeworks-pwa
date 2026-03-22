@@ -482,22 +482,29 @@ function dealBorderStyle(rate) {
 }
 
 /* ── Delta formatting ── */
+function _mkDelta(diff, formatted) {
+  if (diff === 0) return '';
+  var cls = diff > 0 ? 'positive' : 'negative';
+  var sign = diff > 0 ? '+' : '';
+  return '<div class="delta ' + cls + '">' + sign + formatted + '</div>';
+}
 function fmtDelta(current, prev) {
   if (prev === null || prev === undefined) return '';
-  var diff = current - prev;
-  if (diff === 0) return '';
-  var cls = diff > 0 ? 'positive' : 'negative';
-  var sign = diff > 0 ? '+' : '';
-  return '<div class="delta ' + cls + '">' + sign + fmt(diff) + '</div>';
+  return _mkDelta(current - prev, fmt(current - prev));
 }
-
 function fmtDeltaDec(current, prev) {
   if (prev === null || prev === undefined) return '';
+  return _mkDelta(current - prev, fmtDec(current - prev));
+}
+function fmtDeltaNum(current, prev) {
+  if (prev === null || prev === undefined) return '';
   var diff = current - prev;
-  if (diff === 0) return '';
-  var cls = diff > 0 ? 'positive' : 'negative';
-  var sign = diff > 0 ? '+' : '';
-  return '<div class="delta ' + cls + '">' + sign + fmtDec(diff) + '</div>';
+  return _mkDelta(diff, '' + diff);
+}
+function fmtDeltaPct(current, prev) {
+  if (prev === null || prev === undefined) return '';
+  var diff = current - prev;
+  return _mkDelta(diff, (diff * 100).toFixed(1) + '%');
 }
 
 /* ================================================================
@@ -714,12 +721,15 @@ function updateDeltas() {
   var prevTotalRev = prev.totalMrr + prev.totalProject;
 
   // Update stat card deltas
+  var quotaPct = calc.totalMrr / QUOTA;
+  var prevQuotaPct = prev.totalMrr / QUOTA;
   var deltaMap = {
     'Revenue Closed': fmtDelta(totalRev, prevTotalRev),
     'MRR Revenue': fmtDelta(calc.totalMrr, prev.totalMrr),
     'Project Revenue': fmtDelta(calc.totalProject, prev.totalProject),
     'Commission Earned': fmtDeltaDec(calc.totalCommission, prev.totalCommission),
-    'Deals Won': fmtDelta(calc.deals.length, prev.deals.length)
+    'Deals Won': fmtDeltaNum(calc.deals.length, prev.deals.length),
+    'Quota Attainment': fmtDeltaPct(quotaPct, prevQuotaPct)
   };
 
   var statCards = document.querySelectorAll('.stat-card');
