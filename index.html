@@ -212,9 +212,11 @@ tbody tr:hover{background:var(--surface2)}
   /* Hide waterfall on mobile */
   #waterfall-section{display:none}
   /* Collapsible sections */
-  .section-title.collapsible{cursor:pointer;display:flex;justify-content:space-between;align-items:center}
-  .section-title.collapsible::after{content:'\25B2';font-size:10px;color:var(--text-dim);transition:transform .2s}
-  .section-title.collapsed::after{transform:rotate(180deg)}
+  .section-title.collapsible{cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .section-title.collapsible.collapsed{margin-bottom:0}
+  .section-title.collapsible::after{content:'\25BC';font-size:10px;color:var(--text-dim);transition:transform .2s}
+  .section-title.collapsed::after{transform:rotate(-90deg)}
+  .section-body{margin:0;padding:0}
   .section-body.collapsed{display:none}
   /* Waterfall chart */
   .wf-label,.cb-label{width:70px;min-width:70px;font-size:9px}
@@ -893,14 +895,15 @@ function renderStats(calc) {
     { label: 'Project Revenue', value: fmt(calc.totalProject), cls: '', mobileHide: true },
     { label: 'Commission Earned', value: fmtDec(calc.totalCommission), cls: 'accent', mobileHide: true },
     { label: 'Deals Won', value: calc.deals.length, cls: '', mobileHide: false },
-    { label: 'Quota Attainment', value: fmtPct(quotaPct), cls: quotaPct >= 1 ? 'gold' : '', mobileHide: false },
+    { label: 'Quota Attainment', value: fmtPct(quotaPct), cls: quotaPct >= 1 ? 'gold' : '', mobileHide: false, fullWidth: true },
     { label: 'Effective Rate', value: fmtPct(effectiveRate), cls: '', mobileHide: true }
   ];
 
   var html = '';
   for (var i = 0; i < cards.length; i++) {
     var hideClass = (mobile && cards[i].mobileHide) ? ' mobile-hide' : '';
-    html += '<div class="stat-card' + hideClass + '"><div class="label">' + cards[i].label + '</div><div class="value ' + cards[i].cls + '">' + cards[i].value + '</div></div>';
+    var fullStyle = (mobile && cards[i].fullWidth) ? ' style="grid-column:1/-1"' : '';
+    html += '<div class="stat-card' + hideClass + '"' + fullStyle + '><div class="label">' + cards[i].label + '</div><div class="value ' + cards[i].cls + '">' + cards[i].value + '</div></div>';
   }
   document.getElementById('stats-row').innerHTML = html;
 
@@ -1130,7 +1133,7 @@ function renderDealTable(calc) {
       for (var i = 0; i < deals.length; i++) {
         var d = deals[i];
         var border = dealBorderStyle(d.rate);
-        mhtml += '<div class="deal-card" style="' + border + '" onclick="toggleDealCard(this)">';
+        mhtml += '<div class="deal-card expanded" style="' + border + '" onclick="toggleDealCard(this)">';
         // Collapsed header: name + rate badge + commission
         mhtml += '<div class="dc-header">';
         mhtml += '<div class="dc-header-left"><div class="dc-name" style="margin-bottom:0">' + escHtml(d.name) + '</div></div>';
