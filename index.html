@@ -243,6 +243,18 @@ tbody tr:hover{background:var(--surface2)}
 #install-banner .ib-install:hover{opacity:.9}
 #install-banner .ib-dismiss{padding:8px;background:transparent;color:var(--text-dim);font-size:20px;line-height:1}
 #install-banner .ib-dismiss:hover{color:#fff}
+/* ── Logout Modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:950;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:320px;width:90%;text-align:center}
+.modal-box h3{font-size:16px;font-weight:700;color:#fff;margin-bottom:8px}
+.modal-box p{font-size:13px;color:var(--text-dim);margin-bottom:20px}
+.modal-btns{display:flex;gap:8px;justify-content:center}
+.modal-btns button{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--font)}
+.modal-btn-cancel{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border)}
+.modal-btn-cancel:hover{border-color:var(--text-dim)}
+.modal-btn-confirm{background:var(--red);color:#fff;border:none}
+.modal-btn-confirm:hover{opacity:.9}
 </style>
 </head>
 <body>
@@ -278,7 +290,7 @@ tbody tr:hover{background:var(--surface2)}
 <div id="dashboard-view">
   <div class="dash-header">
     <img src="icons/logo.png" alt="StrikeWorks" style="height:24px">
-    <button class="btn-logout" onclick="if(confirm('Are you sure you want to log out?'))doLogout()">Logout</button>
+    <button class="btn-logout" onclick="document.getElementById('logout-modal').classList.add('show')">Logout</button>
   </div>
   <div class="dash-body" id="dash-body">
     <div class="ptr-indicator" id="ptr-indicator"><div class="spinner"></div></div>
@@ -351,12 +363,14 @@ function currentQuarter() { return Math.ceil((new Date().getMonth() + 1) / 3); }
 
 function webhookUrl(id) { return API_BASE + '/telescope/webhook/' + id + '?await=true'; }
 
-async function callWebhook(id, body) {
-  var resp = await fetch(webhookUrl(id), {
+async function callWebhook(id, body, signal) {
+  var opts = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
-  });
+  };
+  if (signal) opts.signal = signal;
+  var resp = await fetch(webhookUrl(id), opts);
   if (!resp.ok) throw new Error('HTTP ' + resp.status);
   var data = await resp.json();
   if (data.output && data.output.comment) {
@@ -374,8 +388,7 @@ function escHtml(s) { var d = document.createElement('div'); d.textContent = s |
 function showLoading(show) {
   document.getElementById('loading-skeleton').style.display = show ? 'block' : 'none';
   document.getElementById('dash-content').style.display = show ? 'none' : 'block';
-  document.getElementById('welcome-msg').style.display = show ? 'none' : '';
-  document.getElementById('quarter-controls').style.display = show ? 'none' : 'flex';
+  // Always show welcome + quarter controls, even during loading
 }
 
 /* ── Offline Banner ── */
@@ -531,7 +544,10 @@ function doLogin() {
     });
 }
 
+function closeLogoutModal() { document.getElementById('logout-modal').classList.remove('show'); }
+
 function doLogout() {
+  closeLogoutModal();
   localStorage.removeItem('sw_session');
   state.session = null;
   state.cache = {};
@@ -617,7 +633,12 @@ function fadeAndLoad() {
 /* ================================================================
    DATA LOADING
    ================================================================ */
+var _loadAbort = null;
+
 async function loadQuarterData() {
+  // Cancel any in-flight request
+  if (_loadAbort) { _loadAbort.abort(); _loadAbort = null; }
+
   var key = state.quarter + '-' + state.year;
   if (state.cache[key]) {
     renderAll(state.cache[key]);
@@ -626,19 +647,23 @@ async function loadQuarterData() {
   }
 
   showLoading(true);
+  _loadAbort = new AbortController();
+  var signal = _loadAbort.signal;
   try {
     var result = await callWebhook(WF_DATA, {
       cwRepId: state.session.cwRepId,
       quarter: state.quarter,
       year: state.year
-    });
+    }, signal);
+    _loadAbort = null;
     state.cache[key] = result;
     hideOfflineBanner();
     renderAll(result);
     loadPreviousQuarter();
   } catch (err) {
+    if (err.name === 'AbortError') return; // Cancelled — new request will handle it
+    _loadAbort = null;
     console.error('Failed to load data:', err);
-    // Try to show cached data
     if (state.cache[key]) {
       renderAll(state.cache[key]);
       showOfflineBanner();
@@ -647,7 +672,7 @@ async function loadQuarterData() {
       document.getElementById('stats-row').innerHTML = '<div class="stat-card" style="grid-column:1/-1;text-align:center;color:var(--red)">Failed to load data. Please try again.</div>';
     }
   } finally {
-    showLoading(false);
+    if (!signal.aborted) showLoading(false);
   }
 }
 
@@ -1351,6 +1376,18 @@ document.getElementById('login-password').addEventListener('keydown', function (
   document.getElementById('login-view').style.display = 'flex';
 })();
 </script>
+
+<!-- ── LOGOUT MODAL ── -->
+<div class="modal-overlay" id="logout-modal" onclick="if(event.target===this)closeLogoutModal()">
+  <div class="modal-box">
+    <h3>Log out?</h3>
+    <p>You'll need to sign in again to view your commissions.</p>
+    <div class="modal-btns">
+      <button class="modal-btn-cancel" onclick="closeLogoutModal()">Cancel</button>
+      <button class="modal-btn-confirm" onclick="doLogout()">Log out</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── INSTALL BANNER ── -->
 <div id="install-banner">
