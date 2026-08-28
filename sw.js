@@ -1,4 +1,4 @@
-var CACHE_NAME = 'sw-commissions-v13';
+var CACHE_NAME = 'sw-commissions-v14';
 var APP_SHELL = ['/', '/index.html', '/manifest.json', '/favicon.ico', '/icons/logo.png', '/icons/icon-192x192.png', '/icons/icon-512x512.png', '/icons/apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {
