@@ -783,6 +783,9 @@ function calculateCommissions(opps) {
       _mrr: mrr,
       amount: o.amount || 0,
       type: (o.recurringTotal && o.recurringTotal > 0) ? 'mrr' : 'project',
+      // carried from the workflow so the payout can read it. Without this the map
+      // drops it and every deal looks net-new.
+      existingClient: o.existingClient,
       rate: null,
       commission: 0,
       basePortion: 0,
@@ -805,6 +808,22 @@ function calculateCommissions(opps) {
   for (var i = 0; i < mrrDeals.length; i++) {
     var deal = mrrDeals[i];
     var mrr = deal._mrr;
+
+    // Existing-client deals pay zero AND do not consume quota. Victor, 2026-08-18
+    // (comment 10211956475) and 2026-08-21 (comment 10226192144): no commission on
+    // existing clients, and the $15k quota is for net new business.
+    // The `continue` before `runningMrr += mrr` is the quota half. Paying zero without
+    // skipping the accumulation would still push this rep's LATER deals into the 1.5x
+    // accelerator on revenue they are not credited for.
+    // existingClient is null, never false, when the invoice read failed or truncated, so
+    // `!== false` makes an UNKNOWN deal fail CLOSED rather than pay out.
+    if (deal.existingClient !== false) {
+      deal.rate = 'existing';
+      deal.commission = 0;
+      deal.existingUnknown = (deal.existingClient !== true);
+      deal.runningTotal = runningMrr + mrr;   // bar position only, quota not advanced
+      continue;
+    }
 
     if (runningMrr >= QUOTA) {
       deal.rate = 'accel';
@@ -832,7 +851,10 @@ function calculateCommissions(opps) {
   }
 
   var allDeals = mrrDeals.concat(projectDeals);
-  var totalMrr = mrrDeals.reduce(function (s, d) { return s + d._mrr; }, 0);
+  // totalMrr is the QUOTA BASIS (quotaPct, effectiveRate and the summary all divide by
+  // it), so it counts net-new only, matching the payout above.
+  var totalMrr = mrrDeals.reduce(function (s, d) { return d.rate === 'existing' ? s : s + d._mrr; }, 0);
+  var excludedMrr = mrrDeals.reduce(function (s, d) { return d.rate === 'existing' ? s + d._mrr : s; }, 0);
   var totalProject = projectDeals.reduce(function (s, d) { return s + d._mrr; }, 0);
   var totalCommission = mrrDeals.reduce(function (s, d) { return s + d.commission; }, 0);
 
@@ -841,6 +863,7 @@ function calculateCommissions(opps) {
     mrrDeals: mrrDeals,
     projectDeals: projectDeals,
     totalMrr: totalMrr,
+    excludedMrr: excludedMrr,
     totalProject: totalProject,
     totalCommission: totalCommission,
     runningMrr: runningMrr
@@ -982,7 +1005,9 @@ function renderWaterfall(calc) {
     var barWidth = (deal._mrr / maxVal) * 100;
 
     var barHtml = '';
-    if (deal.rate === 'base') {
+    if (deal.rate === 'existing') {
+      barHtml = '<div style="width:100%;height:100%;background:#8A8A8A;opacity:0.55"></div>';
+    } else if (deal.rate === 'base') {
       barHtml = '<div class="wf-bar-base" style="width:100%"></div>';
     } else if (deal.rate === 'accel') {
       barHtml = '<div class="wf-bar-accel" style="width:100%"></div>';
